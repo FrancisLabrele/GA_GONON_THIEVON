@@ -35,16 +35,15 @@ class Individual:
 
 class GAProblem:
     """Defines a Genetic algorithm problem to be solved by ga_solver"""
-    def __init__(self, list_possible_cases: list, len_chrom: int, duplicate_genes: bool, best_fitness):
-        self.list_possible_cases = list_possible_cases
-        self.len_chrom = len_chrom
-        self.duplicate_genes = duplicate_genes
-        self.best_fitness = best_fitness
+    _list_possible_cases = []
+    _len_chrom = 0
+    _duplicate_genes = False
+    _threshold_fitness = 0
     
-    def fitness(chromosome: list):
+    def fitness(self, chromosome: list):
         pass
 
-    def generer_random():
+    def generer_random(self):
         pass
 
 
@@ -66,12 +65,11 @@ class GASolver:
     def reset_population(self, pop_size=50):
         """ Initialize the population with pop_size random Individuals """
         for i in range(pop_size):
-            chromosome = self.problem.generer_random()
+            chromosome = self._problem.generer_random()
             random.shuffle(chromosome)
-            fitness = self.problem.fitness(chromosome)
+            fitness = self._problem.fitness(chromosome)
             new_individual = Individual(chromosome, fitness)
             self._population.append(new_individual)
-
 
     def evolve_for_one_generation(self):
         """ Apply the process for one generation : 
@@ -83,20 +81,68 @@ class GASolver:
                 mutation_rate i.e., mutate it if a random value is below   
                 mutation_rate
         """
-        pass  # REPLACE WITH YOUR CODE
+        # On enlève les x moins bons individus
+        x = int(self._selection_rate * len(self._population))
+        self._population.sort(reverse=True)
+        self._population[(len(self._population)-x):] = []
+
+        # On recrée les x individus que l'on a enlevé en croisant les survivants
+        for i in range(x):
+            # On choisit deux parents non identiques aléatoirement
+            number1 = random.randrange(0, x)
+            number2 = random.randrange(0, x)
+            while (number1 == number2):
+                number2 = random.randrange(0, x)
+            parent1 = self._population[number1]
+            parent2 = self._population[number2]
+
+            # Cas où les gènes peuvent être dupliqués
+            if (self._problem._duplicate_genes):
+                new_chrom = [random.choice([parent1.chromosome[i], parent2.chromosome[i]]) for i in range(self._problem._len_chrom)]
+                # Il y a une probabilité pour que le nouvel individu subisse une mutation sur un de ses chromosomes
+                if (random.random() < self._mutation_rate):
+                    valid_genes = self._problem._list_possible_cases
+                    new_gene = random.choice(valid_genes)
+                    new_chrom[random.randrange(0, len(new_chrom))] = new_gene
+
+            # Cas où les gènes ne peuvent pas être dupliqués
+            else:
+                new_chrom = [random.choice(parent1.chromosome[i], parent2.chromosome[i]) for i in range(self._problem.len_chrom)]
+                available_genes = set(parent1.chromosome + parent2.chromosome)
+                seen = set()
+                for i in range(len(new_chrom)):
+                    if new_chrom[i] in seen:
+                        replacement_gene = random.choice(available_genes)
+                        while replacement_gene in seen:
+                            replacement_gene = random.choice(available_genes)
+                        new_chrom[i] = replacement_gene
+                    else:
+                        seen.add(new_chrom[i])
+
+            # On calcule la fitness de ce nouvel enfant et on l'ajoute à la population
+            child_fitness = self._problem.fitness(new_chrom)
+            child = Individual(new_chrom, child_fitness)
+            self._population.append(child)
 
     def show_generation_summary(self):
         """ Print some debug information on the current state of the population """
-        pass  # REPLACE WITH YOUR CODE
+        for i in range(len(self._population)):
+            print(f"Individu {i} : {self._population[i]}, fitness : {self._population[i].fitness}")
 
     def get_best_individual(self):
         """ Return the best Individual of the population """
-        pass  # REPLACE WITH YOUR CODE
+        self._population.sort(reverse=True)
+        return self._population[0]
 
-    def evolve_until(self, max_nb_of_generations=500, threshold_fitness=None):
+    def evolve_until(self, max_nb_of_generations=500):
         """ Launch the evolve_for_one_generation function until one of the two condition is achieved : 
             - Max nb of generation is achieved
             - The fitness of the best Individual is greater than or equal to
               threshold_fitness
         """
-        pass  # REPLACE WITH YOUR CODE
+        i = 0
+        while (i < max_nb_of_generations and self.get_best_individual().fitness < self._problem._threshold_fitness):
+            print(f"Generation {i}")
+            self.show_generation_summary()
+            self.evolve_for_one_generation()
+            i += 1

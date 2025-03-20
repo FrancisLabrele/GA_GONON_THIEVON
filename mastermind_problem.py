@@ -10,10 +10,19 @@ Template file for your Exercise 3 submission
 from ga_solver import GAProblem
 import mastermind as mm
 
-
 class MastermindProblem(GAProblem):
     """Implementation of GAProblem for the mastermind problem"""
-    pass  # REPLACE WITH YOUR CODE
+    def __init__(self, match):
+        self._list_possible_cases = mm.get_possible_colors()
+        self._len_chrom = match.secret_size()
+        self._duplicate_genes = True
+        self._threshold_fitness = match.max_score()
+
+    def fitness(self, chromosome):
+        return match.rate_guess(chromosome)
+    
+    def generer_random(self):
+        return match.generate_random_guess()
 
 
 if __name__ == '__main__':
@@ -23,11 +32,9 @@ if __name__ == '__main__':
     match = mm.MastermindMatch(secret_size=6)
     problem = MastermindProblem(match)
     solver = GASolver(problem)
-
     solver.reset_population()
     solver.evolve_until()
-
     print(
-        f"Best guess {mm.decode_guess(solver.getBestDNA())} {solver.get_best_individual()}")
+        f"Best guess {mm.encode_guess(solver.get_best_individual().chromosome)} {solver.get_best_individual()}")
     print(
         f"Problem solved? {match.is_correct(solver.get_best_individual().chromosome)}")

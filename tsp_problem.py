@@ -9,19 +9,30 @@ Template file for your Exercise 3 submission
 """
 from ga_solver import GAProblem
 import cities as ct
+import random
 
 class TSProblem(GAProblem):
     """Implementation of GAProblem for the traveling salesperson problem"""
-    pass # REPLACE WITH YOUR CODE
+    def __init__(self):
+        self._list_possible_cases = ct.default_road(ct.load_cities("cities.txt"))
+        self._len_chrom = len(ct.default_road(ct.load_cities("cities.txt")))
+        self._duplicate_genes = False
+        self._threshold_fitness = 0
+
+    def fitness(self, chromosome):
+        return 1 / ct.road_length(ct.load_cities("cities.txt"), chromosome)
+    
+    def generer_random(self):
+        return random.sample(ct.default_road(ct.load_cities("cities.txt")), len(ct.default_road(ct.load_cities("cities.txt"))))
 
 
 if __name__ == '__main__':
 
     from ga_solver import GASolver
 
-    city_dict = cities.load_cities("cities.txt")
+    city_dict = ct.load_cities("cities.txt")
     problem = TSProblem()
     solver = GASolver(problem)
     solver.reset_population()
     solver.evolve_until()
-    cities.draw_cities(city_dict, solver.getBestIndiv().chromosome)
+    ct.draw_cities(city_dict, solver.get_best_individual().chromosome)
