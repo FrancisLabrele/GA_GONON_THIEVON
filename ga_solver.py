@@ -39,6 +39,7 @@ class GAProblem:
     _len_chrom = 0
     _duplicate_genes = False
     _threshold_fitness = 0
+    _max_generation = 0
     
     def fitness(self, chromosome: list):
         pass
@@ -134,14 +135,14 @@ class GASolver:
         self._population.sort(reverse=True)
         return self._population[0]
 
-    def evolve_until(self, max_nb_of_generations=500):
+    def evolve_until(self):
         """ Launch the evolve_for_one_generation function until one of the two condition is achieved : 
             - Max nb of generation is achieved
             - The fitness of the best Individual is greater than or equal to
               threshold_fitness
         """
         i = 0
-        while (i < max_nb_of_generations and self.get_best_individual().fitness < self._problem._threshold_fitness):
+        while (i < self._problem._max_generation and self.get_best_individual().fitness < self._problem._threshold_fitness):
             print(f"Generation {i}")
             self.show_generation_summary()
             self.evolve_for_one_generation()

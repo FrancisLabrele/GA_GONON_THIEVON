@@ -17,6 +17,7 @@ class MastermindProblem(GAProblem):
         self._len_chrom = match.secret_size()
         self._duplicate_genes = True
         self._threshold_fitness = match.max_score()
+        self._max_generation = 50
 
     def fitness(self, chromosome):
         return match.rate_guess(chromosome)

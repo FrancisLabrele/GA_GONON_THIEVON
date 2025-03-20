@@ -18,6 +18,7 @@ class TSProblem(GAProblem):
         self._len_chrom = len(ct.default_road(ct.load_cities("cities.txt")))
         self._duplicate_genes = False
         self._threshold_fitness = 0
+        self._max_generation = 2000
 
     def fitness(self, chromosome):
         return 1 / ct.road_length(ct.load_cities("cities.txt"), chromosome)
