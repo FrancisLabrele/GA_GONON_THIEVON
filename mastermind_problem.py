@@ -13,15 +13,19 @@ import mastermind as mm
 class MastermindProblem(GAProblem):
     """Implementation of GAProblem for the mastermind problem"""
     def __init__(self, match):
+        # Initialization of the problem's parameters
         self._list_possible_cases = mm.get_possible_colors()
         self._len_chrom = match.secret_size()
         self._duplicate_genes = True
         self._threshold_fitness = match.max_score()
         self._max_generation = 50
+        self._pop_size = 50
 
+    # Definition of the fitness function that depends on the problem
     def fitness(self, chromosome):
         return match.rate_guess(chromosome)
     
+    # Definition of the random generator function that depends on the problem
     def generer_random(self):
         return match.generate_random_guess()
 

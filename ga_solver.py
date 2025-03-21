@@ -40,6 +40,7 @@ class GAProblem:
     _duplicate_genes = False
     _threshold_fitness = 0
     _max_generation = 0
+    _pop_size = 0
     
     def fitness(self, chromosome: list):
         pass
@@ -52,7 +53,6 @@ class GAProblem:
 class GASolver:
     def __init__(self, problem: GAProblem, selection_rate=0.5, mutation_rate=0.1):
         """Initializes an instance of a ga_solver for a given GAProblem
-
         Args:
             problem (GAProblem): GAProblem to be solved by this ga_solver
             selection_rate (float, optional): Selection rate between 0 and 1.0. Defaults to 0.5.
@@ -63,9 +63,9 @@ class GASolver:
         self._mutation_rate = mutation_rate
         self._population = []
 
-    def reset_population(self, pop_size=50):
+    def reset_population(self):
         """ Initialize the population with pop_size random Individuals """
-        for i in range(pop_size):
+        for i in range(self._problem._pop_size):
             chromosome = self._problem.generer_random()
             random.shuffle(chromosome)
             fitness = self._problem.fitness(chromosome)
@@ -82,14 +82,14 @@ class GASolver:
                 mutation_rate i.e., mutate it if a random value is below   
                 mutation_rate
         """
-        # On enlève les x moins bons individus
+        # We get rid of the x less adapted individuals
         x = int(self._selection_rate * len(self._population))
         self._population.sort(reverse=True)
         self._population[(len(self._population)-x):] = []
 
-        # On recrée les x individus que l'on a enlevé en croisant les survivants
+        # We recreate x new individuals based on 2 survivors (the parents)
         for i in range(x):
-            # On choisit deux parents non identiques aléatoirement
+            # We choose 2 non identical parents randomly
             number1 = random.randrange(0, x)
             number2 = random.randrange(0, x)
             while (number1 == number2):
@@ -97,16 +97,16 @@ class GASolver:
             parent1 = self._population[number1]
             parent2 = self._population[number2]
 
-            # Cas où les gènes peuvent être dupliqués
+            # Case where the genes can be duplicated
             if (self._problem._duplicate_genes):
                 new_chrom = [random.choice([parent1.chromosome[i], parent2.chromosome[i]]) for i in range(self._problem._len_chrom)]
-                # Il y a une probabilité pour que le nouvel individu subisse une mutation sur un de ses chromosomes
+                # There is a probability of mutation for the new individual
                 if (random.random() < self._mutation_rate):
                     valid_genes = self._problem._list_possible_cases
                     new_gene = random.choice(valid_genes)
                     new_chrom[random.randrange(0, len(new_chrom))] = new_gene
 
-            # Cas où les gènes ne peuvent pas être dupliqués
+            # Case where the genes cannot be duplicated (no mutation possible here)
             else:
                 new_chrom = [random.choice(parent1.chromosome[i], parent2.chromosome[i]) for i in range(self._problem.len_chrom)]
                 available_genes = set(parent1.chromosome + parent2.chromosome)
@@ -120,7 +120,7 @@ class GASolver:
                     else:
                         seen.add(new_chrom[i])
 
-            # On calcule la fitness de ce nouvel enfant et on l'ajoute à la population
+            # We evaluate the fitness of the new child and add it to the population
             child_fitness = self._problem.fitness(new_chrom)
             child = Individual(new_chrom, child_fitness)
             self._population.append(child)
